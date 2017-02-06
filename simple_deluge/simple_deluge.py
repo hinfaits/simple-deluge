@@ -1,25 +1,17 @@
-import os, sys
-
-try:
-    sys.path.index(sys.path.append(os.path.join(os.path.dirname(__file__), "pip")))
-except ValueError:
-    sys.path.append(sys.path.append(os.path.join(os.path.dirname(__file__), "pip")))
-
 from deluge_client import DelugeRPCClient
 
-class DelugeClient():
-    def __init__(self):
-        import config
+class DelugeClient(object):
+    def __init__(self, host, port, username, password):
         self.client = DelugeRPCClient(
-            host=config.DELUGE['host'],
-            port=config.DELUGE['port'],
-            username=config.DELUGE['uname'],
-            password=config.DELUGE['pword']
+            host=host,
+            port=port,
+            username=username,
+            password=password
         )
-        self.client.connect()
         self.torrent_status_data = None
 
-    def connected(self):
+    def connect(self):
+        self.client.connect()
         return self.client.connected
 
     def all_torrent_id(self):
@@ -45,14 +37,14 @@ class DelugeClient():
 
     def resume_torrent(self, torrent_id):
         return self.client.call('core.resume_torrent', [torrent_id])
-    
+
     def remove_torrent(self, torrent_id, remove_data=False):
         return self.client.call('core.remove_torrent', torrent_id, remove_data)
 
     def set_do_not_download(self, torrent_id):
         res = self.torrent_status(torrent_id)
         if res:
-            new_file_priorities = [0 for _ in res[b'file_priorities']]
+            new_file_priorities = [0 for _ in res['file_priorities']]
             self.client.call('core.set_torrent_file_priorities', torrent_id, new_file_priorities)
         else:
             return None
